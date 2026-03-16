@@ -1,0 +1,26 @@
+@layer components {
+  .btn {
+    @apply relative grid grid-flow-col items-center justify-center gap-1 rounded-md leading-5 duration-150 ease-out;
+
+    &-text {
+      &:hover {
+        .text {
+          @apply underline;
+        }
+      }
+    }
+
+    &-primary {
+      @apply bg-theme text-black hover:bg-theme-dark hover:text-theme;
+    }
+
+    &-secondary {
+      @apply bg-neutral-900/40 ring-1 ring-neutral-600 hover:bg-neutral-950;
+    }
+
+    &:disabled,
+    &.disabled {
+      @apply cursor-not-allowed opacity-50;
+    }
+  }
+}

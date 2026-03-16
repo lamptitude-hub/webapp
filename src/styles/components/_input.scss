@@ -1,0 +1,38 @@
+@layer components {
+  .ui--input {
+    &-label {
+      &.required {
+        &::after {
+          content: ' *';
+          color: red;
+          margin-left: 4px;
+        }
+      }
+    }
+
+    &-field {
+      input {
+        & ~ .icon {
+          &.is-text {
+            @apply text-neutral-400;
+          }
+        }
+
+        @include attr('type', 'password') {
+          @apply font-bold tracking-[2px];
+        }
+
+        @include attr('type', ('number', 'search')) {
+          appearance: none;
+          -moz-appearance: textfield;
+
+          &::-webkit-outer-spin-button,
+          &::-webkit-inner-spin-button {
+            appearance: none;
+            -webkit-appearance: none;
+          }
+        }
+      }
+    }
+  }
+}

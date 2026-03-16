@@ -1,0 +1,48 @@
+@layer components {
+  .ui--notice {
+    &-item {
+      box-shadow: 0 4px 8px rgba(#1b2430, 0.06);
+      backdrop-filter: blur(1rem);
+
+      &:not(:last-child) {
+        margin-bottom: 1rem;
+      }
+
+      &.exit {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      &.exit-active {
+        opacity: 0;
+        transform: translateX(0.5rem);
+      }
+    }
+
+    &-type {
+      &.info {
+        .icon {
+          @apply text-blue-500;
+        }
+      }
+
+      &.success {
+        .icon {
+          @apply text-green-500;
+        }
+      }
+
+      &.warn {
+        .icon {
+          @apply text-yellow-500;
+        }
+      }
+
+      &.error {
+        .icon {
+          @apply text-rose-500;
+        }
+      }
+    }
+  }
+}

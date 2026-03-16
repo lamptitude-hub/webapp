@@ -1,0 +1,33 @@
+.ui--summary {
+  &-container {
+    max-width: 992px;
+    box-shadow: 0 0 1rem rgba(0 0 0 / 0.06);
+  }
+
+  &-context {
+  }
+
+  &-table {
+    .rows {
+      grid-template-columns: 200px 1fr;
+
+      @apply max-sm:grid-cols-1;
+    }
+
+    .table {
+      .tr {
+        grid-template-columns: 3rem 1.75fr repeat(3, 1fr);
+      }
+
+      .td {
+        @apply max-sm:text-xs;
+      }
+    }
+  }
+
+  &-footer {
+    .btn {
+      @apply py-2;
+    }
+  }
+}

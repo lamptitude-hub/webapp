@@ -1,0 +1,16 @@
+{
+  "css.customData": [
+    ".vscode/tailwind.json"
+  ],
+  "editor.formatOnSave": true,
+  "editor.snippetSuggestions": "top",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "files.eol": "\n",
+  "files.exclude": {
+    "**/.next": true,
+    "**/dist": true
+  },
+  "typescript.tsdk": "node_modules\\typescript\\lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "prettier.configPath": "prettier.config.js"
+}

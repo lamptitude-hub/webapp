@@ -1,0 +1,26 @@
+@layer components {
+  .ui--table {
+    .thead {
+      @apply mb-2 select-none bg-neutral-200;
+
+      .td {
+      }
+    }
+
+    .tbody {
+      @apply grid gap-2;
+
+      .tr {
+        &:hover {
+        }
+      }
+    }
+
+    .tr {
+      @apply grid grid-flow-col items-center gap-2 px-3 py-2 max-sm:gap-1;
+    }
+
+    .td {
+    }
+  }
+}

@@ -1,0 +1,27 @@
+.ui--canopy {
+  &-body {
+    .grid-composition {
+      &:hover {
+        @apply bg-white ring-[6px] ring-theme;
+      }
+
+      &.active {
+        @apply bg-white ring-[6px] ring-theme;
+
+        &:before {
+          @apply absolute left-1/2 top-1/2 z-10 h-24 w-24 rounded-full bg-theme/40;
+
+          content: '';
+          transform: translate(-50%, -50%);
+        }
+
+        &:after {
+          @apply absolute left-1/2 top-1/2 z-20 h-2 w-2 rounded-full bg-white;
+
+          content: '';
+          transform: translate(-50%, -50%);
+        }
+      }
+    }
+  }
+}

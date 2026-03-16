@@ -1,0 +1,35 @@
+@layer components {
+  .ui--modal {
+    &.none {
+      @apply pointer-events-none;
+    }
+
+    &-wrapper {
+      &.enter-active,
+      &.enter-done {
+        @include class-contains('-container') {
+          @apply translate-y-0 opacity-100;
+        }
+      }
+
+      &.is-dialog {
+        @include class-endWith('modal-container') {
+          @apply min-w-[320px] rounded-xl bg-neutral-900 px-8 pb-6 pt-8;
+          box-shadow: 0 10px 20px rgba(#1b2430, 0.08);
+        }
+
+        @include class-endWith('modal-footer') {
+          @apply grid grid-flow-col justify-end gap-4;
+
+          .btn {
+            @apply h-8 w-auto min-w-[80px] focus:outline focus:outline-1 focus:outline-offset-2 focus:outline-neutral-800;
+
+            .text {
+              @apply text-xs font-bold capitalize;
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,70 @@
+// SET global classes.
+.ui- {
+  &-app {
+    &-container {
+      .svg-12 {
+        &.active {
+          path,
+          circle {
+            stroke: rgb(0 0 0);
+          }
+        }
+
+        path,
+        circle {
+          stroke-width: 1.5;
+          stroke: rgb(163 163 163);
+        }
+      }
+    }
+  }
+
+  &-router {
+    &-view {
+      @apply h-full w-full;
+
+      .canopy-color {
+        &.WHITE {
+          background-color: white;
+          background-image: linear-gradient(90deg, #ddd9d2 0%, #dad2c1 19.79%, #f5f3ee 55.73%, #d4cfc4 100%);
+        }
+
+        &.BLACK {
+          background-color: black;
+          background-image: linear-gradient(90deg, #000000 4.69%, #808080 52.34%, #000000 100%);
+        }
+
+        &.GOLD {
+          background-color: #b49a67;
+          background-image: linear-gradient(
+            90deg,
+            #f1e7d2 0%,
+            #c4b392 19.79%,
+            #eadbbf 46.86%,
+            #b49a67 78.72%
+          );
+        }
+      }
+    }
+  }
+
+  &-page {
+    &-actions {
+      @apply fixed inset-x-0 bottom-0 z-10 bg-white/50 px-6 py-5 shadow-2xl shadow-neutral-600 backdrop-blur-xl max-sm:px-2 max-sm:py-2;
+
+      .btn {
+        &-prev {
+          @apply gap-2 bg-neutral-100 px-4 py-2 hover:underline max-sm:px-2;
+        }
+
+        &-next {
+          @apply bg-neutral-200 px-12 py-2 text-neutral-600 hover:underline max-sm:px-8;
+
+          &:not(:disabled) {
+            @apply bg-black text-white;
+          }
+        }
+      }
+    }
+  }
+}

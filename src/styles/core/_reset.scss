@@ -1,0 +1,57 @@
+a {
+  @apply inline-block cursor-pointer select-none text-inherit no-underline outline-none;
+}
+
+p {
+  @apply m-0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply m-0 leading-normal;
+}
+
+ul,
+ol {
+  @apply m-0 list-none p-0;
+}
+
+img,
+label {
+  @apply select-none;
+}
+
+img,
+video {
+  @apply pointer-events-none select-none;
+}
+
+button,
+input,
+select,
+textarea {
+  @apply font-primary m-0 bg-transparent outline-none first-line:text-inherit;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  @apply m-0 appearance-none;
+}
+
+input[type='number'] {
+  appearance: textfield;
+}
+
+button {
+  @apply cursor-pointer select-none border-none p-0 shadow-none outline-none;
+}
+
+input,
+select,
+textarea {
+  @apply w-full border-none p-0 shadow-none outline-none;
+}

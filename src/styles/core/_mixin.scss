@@ -1,0 +1,141 @@
+// Media queries breakpoints
+$screen-xs: 576px; // Small tablets and large smartphones (landscape view)
+$screen-sm: 768px; // Small tablets (portrait view)
+$screen-md: 992px; // Tablets and small desktops
+$screen-lg: 1260px; // Large tablets and desktops
+
+// Slightly lighten a color
+@function tint($color, $percentage) {
+  @return mix(white, $color, $percentage);
+}
+
+// Slightly darken a color
+@function shade($color, $percentage) {
+  @return mix(black, $color, $percentage);
+}
+
+// Small devices
+@mixin screen-xs {
+  @media (max-width: #{$screen-xs}) {
+    @content;
+  }
+}
+
+@mixin screen-xs-min {
+  @media (min-width: #{$screen-xs + 1}) {
+    @content;
+  }
+}
+
+// Medium devices
+@mixin screen-sm {
+  @media (max-width: #{$screen-sm}) {
+    @content;
+  }
+}
+
+@mixin screen-sm-min {
+  @media (min-width: #{$screen-sm + 1}) {
+    @content;
+  }
+}
+
+// Large devices
+@mixin screen-md {
+  @media (max-width: #{$screen-md}) {
+    @content;
+  }
+}
+
+@mixin screen-md-min {
+  @media (min-width: #{$screen-md + 1}) {
+    @content;
+  }
+}
+
+// Extra large devices
+@mixin screen-lg {
+  @media (max-width: #{$screen-lg}) {
+    @content;
+  }
+}
+
+@mixin screen-lg-min {
+  @media (min-width: #{$screen-lg + 1}) {
+    @content;
+  }
+}
+
+// Custom devices
+@mixin screen($screen) {
+  @media (max-width: #{$screen + 'px'}) {
+    @content;
+  }
+}
+
+@mixin attr($attr, $values) {
+  @if type-of($values) == 'list' {
+    @each $value in $values {
+      &[#{$attr}='#{$value}'] {
+        @content;
+      }
+    }
+  } @else {
+    &[#{$attr}='#{$values}'] {
+      @content;
+    }
+  }
+}
+
+@mixin input($type) {
+  input[type='#{$type}'] {
+    @content;
+  }
+}
+
+@mixin dark-mode() {
+  @media (prefers-color-scheme: dark) {
+    @at-root #{selector-nest(':root:not([theme=light]):not([theme=dark])', &)} {
+      @content;
+    }
+  }
+
+  @at-root #{selector-nest(':root[theme=dark]', &)} {
+    @content;
+  }
+}
+
+@mixin class-startWith($class-match) {
+  [class^='#{$class-match}'] {
+    @content;
+  }
+}
+
+@mixin class-contains($class-match) {
+  [class*='#{$class-match}'] {
+    @content;
+  }
+}
+
+@mixin class-endWith($class-match) {
+  [class$='#{$class-match}'] {
+    @content;
+  }
+}
+
+@mixin class-modal($class-name) {
+  .ui--modal-wrapper {
+    &.#{$class-name} {
+      @content;
+    }
+  }
+}
+
+@mixin text-ellipsis($height, $max-line: 2) {
+  display: -webkit-box;
+  max-height: $height;
+  -webkit-line-clamp: $max-line;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

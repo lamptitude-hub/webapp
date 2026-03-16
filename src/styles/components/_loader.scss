@@ -1,0 +1,106 @@
+.ui--loader {
+  &-rainbow {
+    background-image: linear-gradient(
+      to right,
+      #ef5350,
+      #f48fb1,
+      #7e57c2,
+      #2196f3,
+      #26c6da,
+      #43a047,
+      #eeff41,
+      #f9a825,
+      #ff5722
+    );
+  }
+
+  &-triangle {
+    position: absolute;
+    z-index: 4;
+    background-color: rgba(white, 0.4);
+    backdrop-filter: blur(1rem);
+    transition: all 320ms ease-in-out;
+
+    &:not(.rendering) {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .context {
+      transform: rotate(45deg);
+      width: 100px;
+      aspect-ratio: 1.154;
+      --c: #0000, #101010 2deg 59deg, #0000 61deg;
+      --c1: conic-gradient(from 149deg at top, var(--c));
+      --c2: conic-gradient(from -30deg at bottom, var(--c));
+      background:
+        var(--c1) top,
+        var(--c1) bottom right,
+        var(--c2) bottom,
+        var(--c1) bottom left;
+      background-size: 50% 50%;
+      background-repeat: no-repeat;
+      animation: triangle-0 1s infinite;
+    }
+  }
+
+  @keyframes triangle-0 {
+    80%,
+    100% {
+      background-position:
+        bottom right,
+        bottom left,
+        bottom,
+        top;
+    }
+  }
+
+  &-triangle1 {
+    position: absolute;
+    z-index: 4;
+    background-color: rgba(white, 0.4);
+    backdrop-filter: blur(1rem);
+    transition: all 320ms ease-in-out;
+
+    &:not(.rendering) {
+      transition-delay: 0.5s;
+      opacity: 0;
+      pointer-events: none;
+
+      .bar-inner {
+        max-width: 100% !important;
+        animation: none;
+      }
+    }
+
+    .context {
+      width: 240px;
+      text-align: center;
+    }
+
+    .bar {
+      position: relative;
+      width: 100%;
+      height: 20px;
+      outline: solid 1px #000;
+      outline-offset: 3px;
+      margin-top: 0.5rem;
+
+      &-inner {
+        position: absolute;
+        inset: 0;
+        background-color: #000;
+        animation: triangle-1 6s cubic-bezier(0.23, 1, 0.32, 1);
+      }
+    }
+  }
+
+  @keyframes triangle-1 {
+    0% {
+      max-width: 1%;
+    }
+    100% {
+      max-width: 98%;
+    }
+  }
+}

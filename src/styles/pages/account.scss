@@ -1,0 +1,7 @@
+.ui--account {
+  &-container {
+    grid-template-columns: 275px 1fr;
+    max-width: 992px;
+    box-shadow: 0 0 1rem rgba(0 0 0 / 0.06);
+  }
+}
