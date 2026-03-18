@@ -97,7 +97,7 @@ export function SignInComponent() {
         <p className='text-center text-neutral-500'>{t('textSignOr')}</p>
 
         <div className='mb-6 mt-4 grid gap-4'>
-          <button
+          {/* <button
             className='btn btn-text h-12 gap-2 border border-solid border-neutral-200'
             onClick={handleSignInWithFaceebook}>
             <SVG width={20} height={20} viewBox='0 0 17 17'>
@@ -108,7 +108,7 @@ export function SignInComponent() {
             </SVG>
 
             <span className='text'>{t('btnSignInWithFaceebook')}</span>
-          </button>
+          </button> */}
 
           <button
             className='btn btn-text h-12 gap-2 border border-solid border-neutral-200'
