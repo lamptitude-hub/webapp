@@ -10,9 +10,10 @@
     "prebuild": "rimraf \".next\""
   },
   "dependencies": {
+    "@opentelemetry/api": "^1.9.1",
     "@reduxjs/toolkit": "^2.6.1",
-    "@supabase/ssr": "^0.6.1",
-    "@supabase/supabase-js": "^2.49.4",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.106.2",
     "@tanstack/react-query": "^5.72.2",
     "axios": "^1.8.4",
     "classnames": "^2.5.1",

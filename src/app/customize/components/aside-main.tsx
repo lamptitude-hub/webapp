@@ -1,7 +1,7 @@
 'use client'
 
 import cls from 'classnames'
-import { pick, shuffle } from 'lodash'
+import { clone, pick, shuffle } from 'lodash'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -10,7 +10,7 @@ import { ItemGroup } from '@/constants'
 import { useTranslate } from '@/hooks'
 import type { Dataset, State, TableData, TableType, UpdateDistanceValues } from '@/libs/core.type'
 import type { Canopy, Item, Product } from '@/types/schema'
-import { createCycler } from '@/utils'
+import { clampMinMax, createCycler } from '@/utils'
 
 import { ItemComponent } from './item'
 import { ButtonSave } from './save'
@@ -24,7 +24,6 @@ type Props = {
   state: State
   product: Product
   canopy: Canopy
-  canSave?: boolean
   onSave?: () => void
   onClose?: () => void
   onUpdateDistance?: (values: UpdateDistanceValues) => void
@@ -119,20 +118,33 @@ export function AsideMainComponent({ state, product, canopy, ...rest }: Props) {
     (type?: TableType) => {
       if (!rest?.onUpdateTable) return void 0
 
-      const table = getValues('table')
+      let table = getValues('table')
       table.isActive = !!type
 
-      if (type) table.type = type
-      if (type === 'rectangular-table') {
-        table.width = 120
-        table.height = 60
-        table.depth = 120
-        table.legs = [
-          { x: 0, z: 0 },
-          { x: 0, z: 0 },
-          { x: 0, z: 0 },
-          { x: 0, z: 0 }
-        ]
+      if (type) {
+        table.type = type
+
+        switch (type) {
+          case 'rectangular-table':
+            table = {
+              ...table,
+              legs: [
+                { x: 0, z: 0 },
+                { x: 0, z: 0 },
+                { x: 0, z: 0 },
+                { x: 0, z: 0 }
+              ]
+            }
+            break
+
+          case 'square-table':
+          case 'round-table':
+            table = {
+              ...table,
+              legs: [{ x: 0, z: 0 }]
+            }
+            break
+        }
       }
 
       setValue('table', table)
@@ -153,13 +165,11 @@ export function AsideMainComponent({ state, product, canopy, ...rest }: Props) {
   const handleTableSizeChange = useCallback(() => {
     if (!rest?.onUpdateTable) return void 0
 
-    const wires = state.dataset.map((r) => r.wireLength)
-    const min = Math.min(...wires) - 10
-    const max = Math.min(Math.max(Math.max(...wires) - min + 10), 120)
-
     const table = getValues('table')
-
-    table.height = Math.min(Math.max(table.height, 60), max)
+    table.height = Math.min(
+      Math.max(20, table.height),
+      Math.min(150, state.ceiling - (state.clusterHeight + 10))
+    )
     table.width = Math.min(Math.max(table.width, 60), 250)
     table.depth = Math.min(Math.max(table.depth, 60), 250)
 
@@ -211,27 +221,17 @@ export function AsideMainComponent({ state, product, canopy, ...rest }: Props) {
   const handleMixingModel = useCallback(() => {
     setSelected([])
 
-    let dataset: Dataset[] = []
-    let list: Item[] = []
+    const objects = new Map<string, Item>()
     for (const item of items) {
-      if (item.group === ItemGroup.MODEL) {
-        for (const r of items) {
-          if (r.vid === item.vid && r.group === ItemGroup.COLOR) {
-            list.push({
-              ...r,
-              name: `${item?.name} - ${r.name}`
-            })
-          }
-        }
+      if (objects.has(item.vid)) continue
+      if (item.group === ItemGroup.COLOR && item.object3D) {
+        objects.set(item.vid, item)
       }
     }
 
-    if (canopy.name.toUpperCase().includes('SPBA-LINEAR') && canopy?.limiter) {
-      list = list.filter((color) => color.name?.startsWith(product.name))
-    }
-
-    const cycler = createCycler(shuffle(list))
-    dataset = state.dataset.map((r) => ({
+    const models = objects.values().toArray()
+    const cycler = createCycler(shuffle(models))
+    const dataset = state.dataset.map((r) => ({
       ...r,
       itemId: cycler().id
     }))
@@ -247,6 +247,43 @@ export function AsideMainComponent({ state, product, canopy, ...rest }: Props) {
       }
     },
     [rest?.onUpdateCanopy]
+  )
+
+  const handleBulbs = useCallback(
+    (action: 'minus' | 'plus') => {
+      let dataset = state.dataset
+      let bulbs = state.bulbs
+
+      if (action === 'plus') {
+        bulbs = clampMinMax(bulbs + 1, 1, state.maxBulbs)
+
+        const target = clone(dataset[bulbs - 3] || dataset[0])
+        dataset.push(target)
+
+        if (bulbs > 1 && state.isMixing) {
+          const objects = new Map<string, Item>()
+          for (const item of items) {
+            if (objects.has(item.vid)) continue
+            if (item.group === ItemGroup.COLOR && item.object3D) {
+              objects.set(item.vid, item)
+            }
+          }
+
+          const models = objects.values().toArray()
+          const cycler = createCycler(shuffle(models))
+          dataset = dataset.map((r) => ({
+            ...r,
+            itemId: cycler().id
+          }))
+        }
+      } else if (action === 'minus') {
+        bulbs = clampMinMax(bulbs - 1, 1, state.maxBulbs)
+        dataset = dataset.slice(0, bulbs)
+      }
+
+      if (rest?.onUpdateClusters) rest.onUpdateClusters(dataset, true)
+    },
+    [state, items, rest?.onUpdateClusters]
   )
 
   // __EFFECT's
@@ -339,6 +376,35 @@ export function AsideMainComponent({ state, product, canopy, ...rest }: Props) {
                 </div>
               )}
             </div>
+
+            {canopy.name.toUpperCase().includes('-LINEAR-') ? (
+              <div className='grid gap-2'>
+                <label className='whitespace-nowrap text-sm text-zinc-600'>{t('labelMaxOfLamp')}</label>
+                <div className='relative flex items-center justify-between rounded-lg border border-solid border-zinc-200 px-1'>
+                  <button
+                    className='btn size-8 hover:bg-zinc-200'
+                    type='button'
+                    disabled={state.bulbs < 2}
+                    onClick={() => handleBulbs('minus')}>
+                    <span className='icon bi bi-dash text-xl leading-none' />
+                  </button>
+
+                  <div className='flex h-10 items-center justify-center px-2'>
+                    <span className='font-bold'>{state.bulbs}</span>
+                    <span className='px-1 font-light text-zinc-400'>/</span>
+                    <span className='text-zinc-400'>{state.maxBulbs}</span>
+                  </div>
+
+                  <button
+                    className='btn size-8 hover:bg-zinc-200'
+                    type='button'
+                    disabled={state.bulbs >= state.maxBulbs}
+                    onClick={() => handleBulbs('plus')}>
+                    <span className='icon bi bi-plus text-xl leading-none' />
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <hr className='border-zinc-200' />
@@ -536,7 +602,7 @@ export function AsideMainComponent({ state, product, canopy, ...rest }: Props) {
             <span className='text font-semibold capitalize'>{t('btnPrev')}</span>
           </button>
 
-          <ButtonSave canSave={rest?.canSave} onSave={rest?.onSave} />
+          <ButtonSave onSave={rest?.onSave} />
         </div>
       </div>
     </>

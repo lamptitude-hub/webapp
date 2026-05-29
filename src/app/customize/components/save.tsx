@@ -7,7 +7,6 @@ import { useAuth, useTranslate } from '@/hooks'
 import { modal } from '@/utils/addon'
 
 type Props = {
-  canSave?: boolean
   onSave?: () => void
 }
 
@@ -20,7 +19,7 @@ export function ButtonSave(props: Props) {
 
   // __FUNCTION's
   const handleSave = useCallback(() => {
-    if (!props?.canSave || isProcessing) return void 0
+    if (isProcessing) return void 0
     if (user.isAuth()) {
       if (props.onSave) {
         setIsProcessing(true)
@@ -37,7 +36,7 @@ export function ButtonSave(props: Props) {
     <button
       className='btn h-10 min-w-24 bg-black text-white hover:text-theme'
       type='button'
-      disabled={!props?.canSave || isProcessing}
+      disabled={isProcessing}
       onClick={handleSave}>
       <span className='font-semibold capitalize'>{isProcessing ? 'processing...' : t('btnSave')}</span>
     </button>

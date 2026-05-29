@@ -2,6 +2,7 @@
 
 import cls from 'classnames'
 import { sortBy } from 'lodash'
+import { useCallback } from 'react'
 
 import { CanopyType } from '@/constants'
 import { useTranslate } from '@/hooks'
@@ -21,10 +22,7 @@ export function TableComponent({ state, canopy, product, ...rest }: Props) {
   const { t } = useTranslate()
 
   // __FUNCTION's
-  const getItemName = (id: string) => {
-    const item = product.items?.find((r) => r.id === id)
-    return item?.name || '-'
-  }
+  const getItem = useCallback((id: string) => product.items?.find((r) => r.id === id), [product])
 
   // __RENDER
   return (
@@ -60,8 +58,8 @@ export function TableComponent({ state, canopy, product, ...rest }: Props) {
             {sortBy(state.dataset, ['sorting']).map((record, index) => (
               <div className='tr' key={index}>
                 <div className='td'>{index + 1}.</div>
-                <div className='td uppercase'>{getItemName(record.itemId)}</div>
-                <div className='td uppercase'>black</div>
+                <div className='td uppercase'>{getItem(record.itemId)?.code || 'N/A'}</div>
+                <div className='td uppercase'>{getItem(record.itemId)?.name || 'N/A'}</div>
                 <div className='td'>{record.wireLength} cm</div>
               </div>
             ))}

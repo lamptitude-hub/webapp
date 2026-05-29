@@ -4,14 +4,13 @@ import { useQuery } from '@tanstack/react-query'
 import cls from 'classnames'
 import { format } from 'date-fns'
 import captureElement from 'html2canvas'
-import { pick, times } from 'lodash'
+import { pick, shuffle, times } from 'lodash'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { v4 as uuidV4 } from 'uuid'
 
 import { CanopyType, DiskType, ItemGroup } from '@/constants'
 import { type Grid } from '@/constants/canopies'
-import { canopyLimiters } from '@/constants/limiter'
 import { useLoader } from '@/hooks'
 import { Core3D } from '@/libs/core'
 import type { Dataset, State, TableData, UpdateClusterValues, UpdateDistanceValues } from '@/libs/core.type'
@@ -81,14 +80,6 @@ export default function LabsContainer() {
         ProductService.findOne(qs.productId),
         CanopyService.findOne(qs.canopyId)
       ])
-
-      if (product && canopy) {
-        canopy.limiter = canopyLimiters.filter(
-          (r) =>
-            (canopy.id === r.canopy?.id || canopy.name === r.canopy?.name) &&
-            (product.id === r.product?.id || product.name === r.product?.name)
-        )
-      }
 
       return { product, canopy }
     },
@@ -356,18 +347,18 @@ export default function LabsContainer() {
             sorting: r?.sorting || i,
             wireLength: canopyWireSet?.length ? canopyWireSet[i] : defaultWireLength,
             modelSize: { x: 0, y: 0 },
-            itemId: Arrs.random(items).id
+            itemId: shuffle(items)[0].id
           }))
         } else {
-          if (canopy.name.toUpperCase().includes('SPBA-LINEAR')) {
-            dataset = times(qs.bulbs).map((_, index) => ({
+          if (canopy.name.toUpperCase().includes('-LINEAR-')) {
+            dataset = times(50).map((_, index) => ({
               uuid: uuidV4(),
               posX: 0,
               posZ: 0,
               sorting: index,
               wireLength: qs.canopyPresetId === 6 && index % 2 === 0 ? 45 : 80,
               modelSize: { x: 0, y: 0 },
-              itemId: Arrs.random(items).id
+              itemId: shuffle(items)[0].id
             }))
           } else {
             dataset = [
@@ -378,7 +369,7 @@ export default function LabsContainer() {
                 sorting: 1,
                 wireLength: defaultWireLength,
                 modelSize: { x: 0, y: 0 },
-                itemId: items[0].id
+                itemId: shuffle(items)[0].id
               }
             ]
           }
@@ -396,12 +387,13 @@ export default function LabsContainer() {
           canopyColor: qs.canopyColor,
           dataset,
           bulbs: qs.bulbs,
+          maxBulbs: 1,
           isMixing: !slug,
           timestamp: new Date().getTime(),
           table: {
             type: 'square-table',
             width: 120,
-            height: 60,
+            height: 75,
             depth: 120,
             legs: [{ x: 0, z: 0 }],
             isActive: true
@@ -502,7 +494,7 @@ export default function LabsContainer() {
           { hidden: isRendering, active: activePanel < 1 },
           'sm:hidden'
         )}>
-        <ButtonSave canSave={!isOverlapped} onSave={handleSave} />
+        <ButtonSave onSave={handleSave} />
       </div>
 
       <TransitionComponent visible={activePanel > 0} onClosed={() => setActivePanel(-1)}>
@@ -514,7 +506,6 @@ export default function LabsContainer() {
                 state={state}
                 product={res.product}
                 canopy={res.canopy}
-                canSave={!isOverlapped}
                 onSave={handleSave}
                 onClose={() => setActivePanel(0)}
                 onUpdateDistance={handleUpdateDistance}

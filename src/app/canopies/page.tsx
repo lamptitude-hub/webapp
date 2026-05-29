@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { ActionsComponent } from '@/components/actions'
 import { CanopyType } from '@/constants'
-import { canopyLimiters } from '@/constants/limiter'
 import { useLoader, useTranslate } from '@/hooks'
 import { CanopyService, ProductService } from '@/services'
 import type { Canopy } from '@/types/schema'
@@ -65,22 +64,7 @@ export default function CanopyContainer() {
   const state = useMemo(() => {
     return {
       single: responseData?.filter((canopy) => canopy.type === CanopyType.SINGLE),
-      multi: responseData
-        ?.filter((canopy) => canopy.type === CanopyType.MULTI)
-        .map((canopy) => {
-          if (
-            canopyLimiters.some(
-              (r) =>
-                (canopy.id === r.canopy?.id || canopy.name === r.canopy?.name) &&
-                (product?.id === r.product?.id || product?.name === r.product?.name) &&
-                !r.canInatall
-            )
-          ) {
-            canopy.isActive = false
-          }
-
-          return canopy
-        })
+      multi: responseData?.filter((canopy) => canopy.type === CanopyType.MULTI)
     }
   }, [responseData, product])
 

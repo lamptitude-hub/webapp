@@ -9,7 +9,6 @@ import { useForm } from 'react-hook-form'
 import { ActionsComponent } from '@/components/actions'
 import { CanopyType } from '@/constants'
 import { CanopySet, wireArray } from '@/constants/canopies'
-import { canopyLimiters } from '@/constants/limiter'
 import { useLoader, useTranslate } from '@/hooks'
 import { CanopyService, ProductService } from '@/services'
 import { clampMinMax, s3Prefix } from '@/utils'
@@ -55,23 +54,7 @@ export default function CanopyColorContainer() {
     refetchOnWindowFocus: false
   })
 
-  const maxBulbs = useMemo(() => {
-    if (responseData && product) {
-      const i = canopyLimiters.find((r) => {
-        return (
-          (responseData.id === r.canopy?.id ||
-            responseData.name.toUpperCase().includes(r.canopy?.name || '')) &&
-          (product.id === r.product?.id || product.name.toUpperCase().includes(r.product?.name || '')) &&
-          r.canInatall &&
-          r.isActive
-        )
-      })
-
-      return currentPresetId && i ? i.maximum[currentPresetId] : responseData.grid.length || 1
-    }
-
-    return 1
-  }, [responseData, product, currentPresetId])
+  const maxBulbs = useMemo(() => responseData?.grid.length || 1, [responseData])
 
   // __FUNCTION's
   const handlePresetChange = useCallback(
@@ -99,23 +82,6 @@ export default function CanopyColorContainer() {
       setCurrentPresetId(id)
     },
     [responseData]
-  )
-
-  const handleBulbs = useCallback(
-    (action: 'minus' | 'plus') => {
-      const max = responseData?.grid?.length || maxBulbs || 10
-
-      setTotalBulbs((prev) => {
-        if (action === 'plus') {
-          return clampMinMax(prev + 1, 1, max)
-        } else if (action === 'minus') {
-          return clampMinMax(prev - 1, 1, max)
-        }
-
-        return prev
-      })
-    },
-    [responseData, maxBulbs]
   )
 
   const handleNext = useCallback(() => {
@@ -181,27 +147,15 @@ export default function CanopyColorContainer() {
         </div>
       </div>
 
-      {responseData?.type === CanopyType.MULTI && (
+      {!isBulbs && (
         <div className='mx-auto flex max-w-6xl items-center justify-start gap-8 max-sm:mt-4 max-sm:gap-4 max-sm:px-2'>
           <div className='text-base text-neutral-500'>{t('labelMaxOfLamp')}</div>
 
           <div className='flex items-center justify-start rounded-xl px-2 py-1 ring-2 ring-yellow-400'>
-            {isBulbs && (
-              <button className='btn size-8' type='button' onClick={() => handleBulbs('minus')}>
-                <span className='icon bi bi-dash text-xl leading-none' />
-              </button>
-            )}
-
-            <div className={cls('select-none text-base', { 'px-2': !isBulbs })}>
+            <div className='select-none px-2 text-base'>
               <span className='font-bold'>{totalBulbs}</span>
               <small className='pl-1'>{t('labelBulb')}</small>
             </div>
-
-            {isBulbs && (
-              <button className='btn size-8' type='button' onClick={() => handleBulbs('plus')}>
-                <span className='icon bi bi-plus text-xl leading-none' />
-              </button>
-            )}
           </div>
         </div>
       )}

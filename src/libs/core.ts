@@ -4,15 +4,13 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 
-import { CanopyType } from '@/constants'
+import { CanopyType, ItemGroup } from '@/constants'
 import { isDevelop } from '@/constants/configs'
 import type { Canopy, Item } from '@/types/schema'
 import { s3Prefix as baseUrl, roundUpTo } from '@/utils'
 
 import type { Dataset, State, TableData, UpdateClusterValues } from './core.type'
 import { CoreUtils } from './core.utils'
-
-type ResCluster = { group: THREE.Group<THREE.Object3DEventMap>; data: Dataset } | void
 
 export class Core3D {
   private scene: THREE.Scene
@@ -91,16 +89,8 @@ export class Core3D {
     this.addRoomLight()
     await this.createCanopy()
 
-    const clusters: THREE.Group<THREE.Object3DEventMap>[] = []
-    for await (const data of this.state.dataset) {
-      const result = await this.createCluster(data)
-      if (result) {
-        clusters.push(result.group)
-        this.updateDatasetBy(data.uuid, result.data)
-      }
-    }
-
-    this.scene.add(...clusters)
+    const clusters = await Promise.all(this.state.dataset.map((data) => this.createCluster(data)))
+    this.scene.add(...clusters.filter((r) => !!r))
 
     this.createHumanSilhouette()
 
@@ -296,6 +286,41 @@ export class Core3D {
     this.scene.add(light)
   }
 
+  private async getMaximumBulbs() {
+    const canopy = this.scene.children.find(({ name }) => name.startsWith('.canopy'))
+    if (this.items && canopy) {
+      const objects = new Map<string, string>()
+      for (const item of this.items) {
+        if (objects.has(item.vid)) continue
+        if (item.group === ItemGroup.COLOR && item.object3D) {
+          objects.set(item.vid, item.object3D)
+        }
+      }
+
+      const models = await Promise.all(
+        objects
+          .values()
+          .toArray()
+          .map((url) => this.loadAsync<THREE.Object3D>(url))
+      )
+
+      const sizes: number[] = []
+      for (const model of models) {
+        this.utils.setScale(model, this.conf.ratio)
+        const [_, size] = this.utils.getBoundingBox(model)
+        const width = Math.round(size.x * this.conf.ratio) + 1
+        sizes.push(width)
+      }
+
+      const [_, canopySize] = this.utils.getBoundingBox(canopy)
+      const canopyWidth = Math.round(canopySize.x * this.conf.ratio) - 10
+
+      return Math.floor(canopyWidth / Math.min(...sizes))
+    }
+
+    return 1
+  }
+
   private async createCanopy() {
     if (!this.canopy) return void 0
 
@@ -318,8 +343,15 @@ export class Core3D {
         this.scene.add(canopy)
       }
 
-      const isLinear = this.canopy.name.toUpperCase().includes('SPBA-LINEAR')
-      if (isLinear && this.state?.bulbs && this.state?.presetId && [5, 6].indexOf(this.state.presetId) > -1) {
+      if (
+        this.canopy.name.toUpperCase().includes('-LINEAR-') &&
+        this.state?.presetId &&
+        [5, 6].indexOf(this.state.presetId) > -1
+      ) {
+        const max = await this.getMaximumBulbs()
+        this.state.bulbs = max
+        this.state.maxBulbs = max
+
         const sizeX = (canopySize.x - 1.5) / 2
 
         let dataset = this.state.dataset.slice(0, this.state.bulbs)
@@ -336,7 +368,7 @@ export class Core3D {
     }
   }
 
-  private async createCluster(data: Dataset): Promise<ResCluster> {
+  private async createCluster(data: Dataset) {
     const item = this.items?.find((item) => item.id === data?.itemId)
 
     if (!item?.object3D) return void 0
@@ -390,7 +422,9 @@ export class Core3D {
       }
     }
 
-    return { group, data }
+    this.updateDatasetBy(data.uuid, data)
+
+    return group
   }
 
   public createRulers() {
@@ -582,17 +616,9 @@ export class Core3D {
     }
 
     // Update Clusters.
-    const clusters: THREE.Group<THREE.Object3DEventMap>[] = []
-    for await (const data of this.state.dataset) {
-      const result = await this.createCluster(data)
-      if (result) {
-        clusters.push(result.group)
-        this.updateDatasetBy(data.uuid, result.data)
-      }
-    }
-
+    const clusters = await Promise.all(this.state.dataset.map((data) => this.createCluster(data)))
     this.removeCluster()
-    this.scene.add(...clusters)
+    this.scene.add(...clusters.filter((r) => !!r))
 
     return Promise.resolve()
   }
@@ -648,11 +674,10 @@ export class Core3D {
     if (payload?.itemId) {
       const data = this.state.dataset.find((r) => r.uuid === uuid)
       if (data) {
-        const result = await this.createCluster({ ...data, itemId: payload.itemId })
-        if (result) {
+        const cluster = await this.createCluster({ ...data, itemId: payload.itemId })
+        if (cluster) {
           this.removeCluster(uuid)
-          this.updateDatasetBy(uuid, result.data)
-          this.scene.add(result.group)
+          this.scene.add(cluster)
         }
       }
     } else {
@@ -692,9 +717,7 @@ export class Core3D {
   public async updateClusters(dataset: Dataset[]) {
     if (!this.canopy) return void 0
 
-    const clusters: THREE.Group<THREE.Object3DEventMap>[] = []
-
-    if (this.canopy.name.toUpperCase().includes('SPBA-LINEAR')) {
+    if (this.canopy.name.toUpperCase().includes('-LINEAR-')) {
       const canopy = this.scene.children.find((r) => r.name.startsWith('.canopy'))!
       const [_, canopySize] = this.utils.getBoundingBox(canopy)
 
@@ -703,19 +726,13 @@ export class Core3D {
       let end = sizeX
       let spaceBetween = this.utils.justifyBetween(dataset.length, start, end)
 
-      dataset = dataset.map((r, index) => ({ ...r, posX: spaceBetween[index] }))
+      this.state.bulbs = dataset.length
+      this.state.dataset = dataset.map((r, index) => ({ ...r, posX: spaceBetween[index] }))
     }
 
-    for await (const data of dataset) {
-      const result = await this.createCluster(data)
-      if (result) {
-        clusters.push(result.group)
-        this.updateDatasetBy(data.uuid, result.data)
-      }
-    }
-
+    const clusters = await Promise.all(this.state.dataset.map((data) => this.createCluster(data)))
     this.removeCluster()
-    this.scene.add(...clusters)
+    this.scene.add(...clusters.filter((r) => !!r))
 
     return Promise.resolve()
   }

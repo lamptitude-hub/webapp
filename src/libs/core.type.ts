@@ -45,7 +45,8 @@ export type State = {
   canopyColor?: string
   dataset: Dataset[]
   isMixing?: boolean
-  bulbs?: number
+  bulbs: number
+  maxBulbs: number
   table: TableData
   timestamp: number
 }
