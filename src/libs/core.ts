@@ -7,7 +7,7 @@ import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 import { CanopyType, ItemGroup } from '@/constants'
 import { isDevelop } from '@/constants/configs'
 import type { Canopy, Item } from '@/types/schema'
-import { s3Prefix as baseUrl, roundUpTo } from '@/utils'
+import { s3Prefix as baseUrl, delay, roundUpTo } from '@/utils'
 
 import type { Dataset, State, TableData, UpdateClusterValues } from './core.type'
 import { CoreUtils } from './core.utils'
@@ -728,10 +728,12 @@ export class Core3D {
 
       this.state.bulbs = dataset.length
       this.state.dataset = dataset.map((r, index) => ({ ...r, posX: spaceBetween[index] }))
+    } else {
+      this.state.dataset = dataset
     }
 
-    const clusters = await Promise.all(this.state.dataset.map((data) => this.createCluster(data)))
     this.removeCluster()
+    const clusters = await Promise.all(this.state.dataset.map((data) => this.createCluster(data)))
     this.scene.add(...clusters.filter((r) => !!r))
 
     return Promise.resolve()

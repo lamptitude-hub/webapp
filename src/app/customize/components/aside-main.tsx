@@ -11,6 +11,7 @@ import { useTranslate } from '@/hooks'
 import type { Dataset, State, TableData, TableType, UpdateDistanceValues } from '@/libs/core.type'
 import type { Canopy, Item, Product } from '@/types/schema'
 import { clampMinMax, createCycler } from '@/utils'
+import { Arrs } from '@/utils/array'
 
 import { ItemComponent } from './item'
 import { ButtonSave } from './save'
@@ -198,19 +199,10 @@ export function AsideMainComponent({ state, product, canopy, ...rest }: Props) {
 
       setSelected(vids)
 
-      const list: Item[] = []
-      for (const item of items) {
-        if (vids.includes(item.vid) && item.group === ItemGroup.MODEL) {
-          for (const r of items) {
-            if (r.vid === item.vid && r.group === ItemGroup.COLOR) list.push(r)
-          }
-        }
-      }
-
-      const cycler = createCycler(shuffle(list))
+      const list: Item[] = items.filter((item) => vids.includes(item.vid) && item.group === ItemGroup.COLOR)
       const dataset = state.dataset.map((r) => ({
         ...r,
-        itemId: cycler().id
+        itemId: shuffle(list)[0].id
       }))
 
       if (rest?.onUpdateClusters) rest.onUpdateClusters(dataset, false)
